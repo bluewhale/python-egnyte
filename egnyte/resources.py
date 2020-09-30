@@ -134,11 +134,14 @@ class File(FileOrFolder):
                 headers['x-egnyte-last-chunk'] = "true"
             retries = max(self._upload_retries, 1)
             while retries > 0:
-                r = self._client.POST(url, data=chunk, headers=headers)
-                server_sha = r.headers['x-egnyte-chunk-sha512-checksum']
-                our_sha = chunk.sha.hexdigest()
-                if server_sha == our_sha:
-                    break
+                try:
+                    r = self._client.POST(url, data=chunk, headers=headers)
+                    server_sha = r.headers['x-egnyte-chunk-sha512-checksum']
+                    our_sha = chunk.sha.hexdigest()
+                    if server_sha == our_sha:
+                        break
+                except:
+                    print("_chunked_upload error on POST request to upload chunk, will retry")
                 retries -= 1
                 # TODO: retry network errors too
                 # TODO: refactor common parts of chunked and standard upload
